@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output = "../node_modules/.prisma/client"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -14,26 +14,132 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Admin {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  password String
+
+  Package Package[]
+
+  Faq Faq[]
+
+  PackageMetadataInterpretation PackageMetadataInterpretation[]
+}
+
 model User {
-  id            Int            @id @default(autoincrement())
-  full_name     String
-  national_id   String         @unique
-  birth_date    DateTime       @db.Date
-  created_at    DateTime       @default(now())
-  subscriptions Subscription[]
+  id          Int       @id @default(autoincrement())
+  full_name   String
+  national_id String    @unique
+  birth_date  DateTime  @db.Date
+  created_at  DateTime  @default(now())
+  accounts    Account[]
 
   @@map("users")
 }
 
-model Subscription {
+model Account {
   id           Int      @id @default(autoincrement())
   user_id      Int
   phone_number String   @unique
   created_at   DateTime @default(now())
   status       String   @default("inactive") // inactive, active, suspended, cancelled
-  balance      Int
+  balance      Decimal
 
-  user User @relation(fields: [user_id], references: [id])
+  user                User                  @relation(fields: [user_id], references: [id])
+  balance_changes     BalanceChange[]
+  packages            AccountPackage[]
+  CustomerServiceChat CustomerServiceChat[]
 
-  @@map("subscriptions")
+  @@map("accounts")
+}
+
+model AccountPackage {
+  id         Int      @id @default(autoincrement())
+  account_id Int
+  package_id Int
+  created_at DateTime @default(now())
+
+  account Account @relation(fields: [account_id], references: [id])
+  package Package @relation(fields: [package_id], references: [id])
+
+  @@unique([account_id, package_id])
+  @@map("account_packages")
+}
+
+model BalanceChange {
+  id         Int      @id @default(autoincrement())
+  account_id Int
+  type       String
+  amount     Decimal
+  created_at DateTime @default(now())
+
+  account Account @relation(fields: [account_id], references: [id])
+
+  @@map("balance_changes")
+}
+
+model Package {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  created_by_admin_id Int
+  created_at          DateTime @default(now())
+  metadata            String   @db.LongText
+
+  accounts AccountPackage[]
+
+  created_by_admin Admin @relation(fields: [created_by_admin_id], references: [id])
+
+  @@map("packages")
+}
+
+model Faq {
+  id                  Int      @id @default(autoincrement())
+  question            String
+  answer              String
+  created_by_admin_id Int
+  created_at          DateTime @default(now())
+
+  created_by_admin Admin @relation(fields: [created_by_admin_id], references: [id])
+
+  @@map("faqs")
+}
+
+model PackageMetadataInterpretation {
+  id                   Int      @id @default(autoincrement())
+  field_name           String
+  field_local_name     String
+  field_interpretation String
+  created_by_admin_id  Int
+  created_at           DateTime @default(now())
+
+  created_by_admin Admin @relation(fields: [created_by_admin_id], references: [id])
+
+  @@map("package_metadata_interpretations")
+}
+
+model CustomerServiceChat {
+  id                    Int      @id @default(autoincrement())
+  account_id            Int
+  type                  String // text, audio
+  created_at            DateTime @default(now())
+  summary               String   @db.LongText
+  customer_satisfaction String
+
+  account                    Account                      @relation(fields: [account_id], references: [id])
+  CustomerServiceChatMessage CustomerServiceChatMessage[]
+
+  @@map("customer_service_chats")
+}
+
+model CustomerServiceChatMessage {
+  id           Int      @id @default(autoincrement())
+  chat_id      Int
+  text_content String   @db.LongText
+  emotion      String
+  created_at   DateTime @default(now())
+  sender       String // user, admin
+
+  chat CustomerServiceChat @relation(fields: [chat_id], references: [id])
+
+  @@map("customer_service_chat_messages")
 }
