@@ -1,10 +1,11 @@
 import { PackageMetadataInterpretation } from "@prisma/client";
 import { BaseRepositoryInterface, EntityCreatePayload, EntityUpdatePayload } from "./BaseRepositoryInterface";
+import { PrismaClientLike } from "./PrismaClientLike";
 
 export class PackageMetadataInterpretationRepository
     implements BaseRepositoryInterface<number, PackageMetadataInterpretation>
 {
-    constructor(private readonly prisma: any) {}
+    constructor(private readonly prisma: PrismaClientLike) {}
 
     async findAll(): Promise<PackageMetadataInterpretation[]> {
         return this.prisma.packageMetadataInterpretation.findMany();

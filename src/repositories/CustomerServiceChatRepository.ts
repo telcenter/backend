@@ -1,10 +1,11 @@
-import { CustomerServiceChat, PrismaClient } from "@prisma/client";
+import { CustomerServiceChat } from "@prisma/client";
 import { BaseRepositoryInterface, EntityCreatePayload, EntityUpdatePayload } from "./BaseRepositoryInterface";
+import { PrismaClientLike } from "./PrismaClientLike";
 
 export class CustomerServiceChatRepository
     implements BaseRepositoryInterface<number, CustomerServiceChat>
 {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClientLike) {}
 
     async findAll(): Promise<CustomerServiceChat[]> {
         return this.prisma.customerServiceChat.findMany();

@@ -1,8 +1,9 @@
-import { Faq, PrismaClient } from "@prisma/client";
+import { Faq } from "@prisma/client";
 import { BaseRepositoryInterface, EntityCreatePayload, EntityUpdatePayload } from "./BaseRepositoryInterface";
+import { PrismaClientLike } from "./PrismaClientLike";
 
 export class FaqRepository implements BaseRepositoryInterface<number, Faq> {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClientLike) {}
 
     async findAll(): Promise<Faq[]> {
         return this.prisma.faq.findMany();

@@ -4,7 +4,6 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { TRUST_PROXY, ENABLE_LOGGING } from "@/env";
 
 import { registerAllPlugins } from "./plugins";
-import { allRoutes } from "@/routes";
 
 export async function createServer() {
     // https://fastify.dev/docs/latest/Reference/TypeScript/#typebox
@@ -17,7 +16,7 @@ export async function createServer() {
 
     await registerAllPlugins(server);
 
-    await server.register(allRoutes, { prefix: '/' });
+    await server.ready();
 
     return server;
 }

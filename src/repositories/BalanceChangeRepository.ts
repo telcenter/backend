@@ -1,8 +1,9 @@
 import { BalanceChange } from "@prisma/client";
 import { BaseRepositoryInterface, EntityCreatePayload, EntityUpdatePayload } from "./BaseRepositoryInterface";
+import { PrismaClientLike } from "./PrismaClientLike";
 
 export class BalanceChangeRepository implements BaseRepositoryInterface<number, BalanceChange> {
-    constructor(private readonly prisma: any) {}
+    constructor(private readonly prisma: PrismaClientLike) {}
 
     async findAll(): Promise<BalanceChange[]> {
         return this.prisma.balanceChange.findMany();

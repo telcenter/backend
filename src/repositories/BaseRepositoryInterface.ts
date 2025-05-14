@@ -2,7 +2,7 @@ export type EntityBase<EntityId> = {
     id: EntityId,
 };
 
-export type EntityCreatePayload<T extends EntityBase<any>> = Partial<Pick<T, 'id'>> & Omit<T, 'id'>;;
+export type EntityCreatePayload<T extends EntityBase<any>> = Partial<Pick<T, 'id'>> & Omit<T, 'id' | 'created_at'>;;
 export type EntityUpdatePayload<T extends EntityBase<any>> = Partial<T>;
 
 export interface BaseRepositoryInterface<EntityId, T extends EntityBase<EntityId>> {

@@ -37,6 +37,12 @@ async function serve() {
     process.on('message', function (msg) {
         if (msg === 'shutdown') shutdown();
     });
+
+    console.info();
+    console.info(`============== ROUTES ==============`);
+    console.info(server.printRoutes());
+    console.info(`====================================`);
+    console.info();
 }
 
 serve();

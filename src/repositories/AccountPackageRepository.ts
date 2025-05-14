@@ -1,8 +1,9 @@
-import { Account, PrismaClient } from "@prisma/client";
+import { Account } from "@prisma/client";
 import { BaseRepositoryInterface, EntityCreatePayload, EntityUpdatePayload } from "./BaseRepositoryInterface";
+import { PrismaClientLike } from "./PrismaClientLike";
 
 export class AccountPackageRepository implements BaseRepositoryInterface<number, Account> {
-    constructor(private readonly prisma: PrismaClient) {}
+    constructor(private readonly prisma: PrismaClientLike) {}
 
     async findAll(): Promise<Account[]> {
         return this.prisma.account.findMany();
