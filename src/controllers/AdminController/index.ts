@@ -2,6 +2,7 @@ import { AdminRepository } from "@/repositories/AdminRepository";
 import { CustomerServiceChatRepository } from "@/repositories/CustomerServiceChatRepository";
 import { FaqRepository } from "@/repositories/FaqRepository";
 import { PackageMetadataInterpretationRepository } from "@/repositories/PackageMetadataInterpretationRepository";
+import { PackageRepository } from "@/repositories/PackageRepository";
 import { UserRepository } from "@/repositories/UserRepository";
 import { TAdminCreateRequestBody } from "@/schemas/AdminCreateRequestBody";
 import { TAdminDeleteRequestBody } from "@/schemas/AdminDeleteRequestBody";
@@ -12,6 +13,10 @@ import { TAdminUpdatePasswordRequestBody } from "@/schemas/AdminUpdatePasswordRe
 import { TFaqCreateRequestBody } from "@/schemas/FaqCreateRequestBody";
 import { TFaqCreateResponseBody } from "@/schemas/FaqCreateResponseBody";
 import { convertToFaqSchema, convertToFaqSchemaList, TFaqSchema } from "@/schemas/FaqSchema";
+import { TPackageCreateRequestBody } from "@/schemas/PackageCreateRequestBody";
+import { TPackageMetadataInterpretationCreateRequestBody } from "@/schemas/PackageMetadataInterpretationCreateRequestBody";
+import { convertToPackageMetadataInterpretationSchema, convertToPackageMetadataInterpretationSchemaList, TPackageMetadataInterpretationSchema, TPackageMetadataInterpretationSchemaList } from "@/schemas/PackageMetadataInterpretationSchema";
+import { convertToPackageSchema, convertToPackageSchemaList, TPackageSchema, TPackageSchemaList } from "@/schemas/PackageSchema";
 import { TUserCreateRequestBody } from "@/schemas/UserCreateRequestBody";
 import { convertToUserSchema, TUserSchema } from "@/schemas/UserSchema";
 import { TUserUpdateRequestBody } from "@/schemas/UserUpdateRequestBody";
@@ -26,6 +31,7 @@ export class AdminController {
         private readonly userRepository: UserRepository,
         private readonly customerServiceChatRepository: CustomerServiceChatRepository,
         private readonly packageMetadataInterpretationRepository: PackageMetadataInterpretationRepository,
+        private readonly packageRepository: PackageRepository,
         private readonly adminAuthService: AdminAuthService,
         private readonly faqRepository: FaqRepository,
     ) { }
@@ -117,6 +123,49 @@ export class AdminController {
     async deleteFaq(id: number): Promise<{ success: boolean }> {
         return {
             success: await this.faqRepository.delete(id),
+        };
+    }
+
+    async getPackages(): Promise<TPackageSchemaList> {
+        return this.packageRepository.findAll().then(convertToPackageSchemaList);
+    }
+
+    async createPackage(adminId: number, payload: TPackageCreateRequestBody): Promise<TPackageSchema> {
+        return this.packageRepository.create({
+            name: payload.name,
+            metadata: payload.metadata,
+            created_by_admin_id: adminId,
+        }).then(convertToPackageSchema);
+    }
+
+    async deletePackage(id: number): Promise<{ success: boolean }> {
+        return {
+            success: await this.packageRepository.delete(id),
+        };
+    }
+
+    async getPackageMetadataInterpretations(): Promise<TPackageMetadataInterpretationSchemaList> {
+        return this.packageMetadataInterpretationRepository.findAll()
+            .then(convertToPackageMetadataInterpretationSchemaList);
+    }
+
+    async createPackageMetadataInterpretation(
+        adminId: number,
+        payload: TPackageMetadataInterpretationCreateRequestBody,
+    ): Promise<TPackageMetadataInterpretationSchema> {
+        return this.packageMetadataInterpretationRepository.create({
+            field_name: payload.field_name,
+            field_local_name: payload.field_local_name,
+            field_interpretation: payload.field_interpretation,
+            created_by_admin_id: adminId,
+        }).then(convertToPackageMetadataInterpretationSchema);
+    }
+
+    async deletePackageMetadataInterpretation(
+        id: number,
+    ): Promise<{ success: boolean }> {
+        return {
+            success: await this.packageMetadataInterpretationRepository.delete(id),
         };
     }
 }

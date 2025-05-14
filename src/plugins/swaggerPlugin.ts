@@ -37,7 +37,7 @@ export const swaggerPlugin = fastifyPlugin(async (server, options) => {
     server.register(fastifySwaggerUi, {
         routePrefix: '/docs',
         uiConfig: {
-            docExpansion: 'full',
+            // docExpansion: 'full',
             deepLinking: false,
         },
         staticCSP: true,
