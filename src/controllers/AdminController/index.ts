@@ -1,5 +1,6 @@
 import { AdminRepository } from "@/repositories/AdminRepository";
 import { CustomerServiceChatRepository } from "@/repositories/CustomerServiceChatRepository";
+import { FaqRepository } from "@/repositories/FaqRepository";
 import { PackageMetadataInterpretationRepository } from "@/repositories/PackageMetadataInterpretationRepository";
 import { UserRepository } from "@/repositories/UserRepository";
 import { TAdminCreateRequestBody } from "@/schemas/AdminCreateRequestBody";
@@ -8,13 +9,16 @@ import { TAdminLoginRequestBody } from "@/schemas/AdminLoginRequestBody";
 import { TAdminLoginResponseBody } from "@/schemas/AdminLoginResponseBody";
 import { TAdminSchema } from "@/schemas/AdminSchema";
 import { TAdminUpdatePasswordRequestBody } from "@/schemas/AdminUpdatePasswordRequestBody";
+import { TFaqCreateRequestBody } from "@/schemas/FaqCreateRequestBody";
+import { TFaqCreateResponseBody } from "@/schemas/FaqCreateResponseBody";
+import { convertToFaqSchema, convertToFaqSchemaList, TFaqSchema } from "@/schemas/FaqSchema";
 import { TUserCreateRequestBody } from "@/schemas/UserCreateRequestBody";
-import { convertToUserSchema, TUserSchema, UserSchema } from "@/schemas/UserSchema";
+import { convertToUserSchema, TUserSchema } from "@/schemas/UserSchema";
 import { TUserUpdateRequestBody } from "@/schemas/UserUpdateRequestBody";
 import { AdminAuthService } from "@/services/AdminAuthService";
 import createError from "@fastify/error";
 
-const WrongSecretKeyError = createError('FST_ERR_AUTH', "Wrong secret key", 401);
+const WrongSecretKeyError = createError('FST_ERR_AUTH', "Bạn đã nhập sai mã bí mật. Vui lòng kiểm tra và nhập lại.", 401);
 
 export class AdminController {
     constructor(
@@ -23,6 +27,7 @@ export class AdminController {
         private readonly customerServiceChatRepository: CustomerServiceChatRepository,
         private readonly packageMetadataInterpretationRepository: PackageMetadataInterpretationRepository,
         private readonly adminAuthService: AdminAuthService,
+        private readonly faqRepository: FaqRepository,
     ) { }
 
     async login(payload: TAdminLoginRequestBody): Promise<TAdminLoginResponseBody> {
@@ -89,11 +94,29 @@ export class AdminController {
         return convertToUserSchema(user);
     }
 
-    async getCustomerServiceChats() {
-        return this.customerServiceChatRepository.findAll();
+    // async getCustomerServiceChats() {
+    //     return this.customerServiceChatRepository.findAll();
+    // }
+
+    // async getPackageMetadataInterpretations() {
+    //     return this.packageMetadataInterpretationRepository.findAll();
+    // }
+
+    async getFaqs(): Promise<TFaqSchema[]> {
+        return this.faqRepository.findAll().then(convertToFaqSchemaList);
     }
 
-    async getPackageMetadataInterpretations() {
-        return this.packageMetadataInterpretationRepository.findAll();
+    async createFaq(adminId: number, payload: TFaqCreateRequestBody): Promise<TFaqCreateResponseBody> {
+        return this.faqRepository.create({
+            question: payload.question,
+            answer: payload.answer,
+            created_by_admin_id: adminId,
+        }).then(convertToFaqSchema);
+    }
+
+    async deleteFaq(id: number): Promise<{ success: boolean }> {
+        return {
+            success: await this.faqRepository.delete(id),
+        };
     }
 }

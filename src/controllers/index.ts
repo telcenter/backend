@@ -10,6 +10,7 @@ export const registerControllers = fastifyPlugin(async (server: FastifyInstance,
             server.repositories.customerServiceChatRepository,
             server.repositories.packageMetadataInterpretationRepository,
             server.services.adminAuthService,
+            server.repositories.faqRepository,
         ),
     };
 

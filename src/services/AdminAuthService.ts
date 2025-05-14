@@ -4,10 +4,11 @@ import createError from "@fastify/error";
 import bcrypt from "bcrypt";
 import { createSigner, createVerifier } from "fast-jwt";
 import { PrismaTransactionService } from "./PrismaTransactionService";
+import { Admin } from "@prisma/client";
 
-const AdminNotFoundError = createError('FST_ERR_NOT_FOUND', 'Admin not found by email %s', 404);
-const InvalidPasswordError = createError('FST_ERR_AUTH', 'Invalid password', 401);
-const UnauthorizedError = createError('FST_ERR_UNAUTHORIZED', 'Unauthorized', 401);
+const AdminNotFoundError = createError('FST_ERR_NOT_FOUND', 'Không tìm thấy tài khoản quản trị viên với email %s', 404);
+const InvalidPasswordError = createError('FST_ERR_AUTH', 'Sai mật khẩu', 401);
+const UnauthorizedError = createError('FST_ERR_UNAUTHORIZED', 'Bạn chưa đăng nhập', 401);
 
 const JWT_SECRET = SECRET_KEY;
 const sign = createSigner({
@@ -39,12 +40,30 @@ export class AdminAuthService {
         return sign({ id: adminId });
     }
 
-    private async verifyToken(token: string): Promise<{ id: number }> {
+    private async verifyTokenInternal(token: string): Promise<{ id: number }> {
+        let res;
         try {
-            return await verify(token);
+            res = await verify(token);
         } catch (error) {
             throw new UnauthorizedError("invalid token");
         }
+
+        if (!res || !res.id || typeof res.id !== 'number') {
+            throw new UnauthorizedError("invalid token");
+        }
+        return {
+            id: res.id,
+        };
+    }
+
+    async verifyToken(token: string): Promise<Admin> {
+        const { id: adminId } = await this.verifyTokenInternal(token);
+
+        const admin = await this.adminRepository.findById(adminId);
+        if (!admin) {
+            throw new AdminNotFoundError(adminId.toString());
+        }
+        return admin;
     }
 
     async login({ email, password }: {

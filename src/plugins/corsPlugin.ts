@@ -22,6 +22,7 @@ export const corsPlugin = fastifyPlugin((server, options) => {
             'Cache-Control',
             'Accept',
             'Accept-Language',
+            'Authorization',
         ],
         credentials: true,
     });

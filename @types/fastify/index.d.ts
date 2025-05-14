@@ -11,7 +11,7 @@ import { PackageRepository } from "@/repositories/PackageRepository";
 import { UserRepository } from "@/repositories/UserRepository";
 import { AdminAuthService } from "@/services/AdminAuthService";
 import { PrismaTransactionService } from "@/services/PrismaTransactionService";
-import { PrismaClient/*, User*/ } from "@prisma/client";
+import { Admin, PrismaClient/*, User*/ } from "@prisma/client";
 
 // https://github.com/fastify/fastify/issues/1417#issuecomment-458601746
 
@@ -44,6 +44,6 @@ declare module 'fastify' {
     }
 
     export interface FastifyRequest {
-        // user: User,
+        admin: Admin;
     }
 }
