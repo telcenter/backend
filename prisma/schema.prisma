@@ -19,33 +19,23 @@ model Admin {
   email    String @unique
   password String
 
-  Package Package[]
-
-  Faq Faq[]
-
-  PackageMetadataInterpretation PackageMetadataInterpretation[]
-}
-
-model User {
-  id          Int       @id @default(autoincrement())
-  full_name   String
-  national_id String    @unique
-  birth_date  DateTime  @db.Date
-  created_at  DateTime  @default(now())
-  accounts    Account[]
-
-  @@map("users")
+  accounts                       Account[]
+  packages                       Package[]
+  faqs                           Faq[]
+  packageMetadataInterpretations PackageMetadataInterpretation[]
 }
 
 model Account {
-  id           Int      @id @default(autoincrement())
-  user_id      Int
-  phone_number String   @unique
-  created_at   DateTime @default(now())
-  status       String   @default("inactive") // inactive, active, suspended, cancelled
-  balance      Decimal
+  id        Int    @id @default(autoincrement())
+  full_name String
 
-  user                User                  @relation(fields: [user_id], references: [id])
+  phone_number        String   @unique
+  created_at          DateTime @default(now())
+  created_by_admin_id Int
+  status              String   @default("inactive") // inactive, active, suspended, cancelled
+  balance             Decimal
+
+  created_by_admin    Admin                 @relation(fields: [created_by_admin_id], references: [id])
   balance_changes     BalanceChange[]
   packages            AccountPackage[]
   CustomerServiceChat CustomerServiceChat[]
@@ -120,7 +110,7 @@ model PackageMetadataInterpretation {
 model CustomerServiceChat {
   id                    Int      @id @default(autoincrement())
   account_id            Int
-  type                  String // text, audio
+  type                  String // "nhắn tin", "gọi điện"
   created_at            DateTime @default(now())
   summary               String   @db.LongText
   customer_satisfaction String
@@ -137,7 +127,7 @@ model CustomerServiceChatMessage {
   text_content String   @db.LongText
   emotion      String
   created_at   DateTime @default(now())
-  sender       String // user, admin
+  sender       String // "người dùng", "nhân viên"
 
   chat CustomerServiceChat @relation(fields: [chat_id], references: [id])
 

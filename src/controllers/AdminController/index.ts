@@ -1,15 +1,21 @@
+import { AccountRepository } from "@/repositories/AccountRepository";
 import { AdminRepository } from "@/repositories/AdminRepository";
+import { CustomerServiceChatMessageRepository } from "@/repositories/CustomerServiceChatMessageRepository";
 import { CustomerServiceChatRepository } from "@/repositories/CustomerServiceChatRepository";
 import { FaqRepository } from "@/repositories/FaqRepository";
 import { PackageMetadataInterpretationRepository } from "@/repositories/PackageMetadataInterpretationRepository";
 import { PackageRepository } from "@/repositories/PackageRepository";
-import { UserRepository } from "@/repositories/UserRepository";
+import { TAccountBalanceUpdateRequestBody } from "@/schemas/AccountBalanceUpdateRequestBody";
+import { TAccountCreateRequestBody } from "@/schemas/AccountCreateRequestBody";
+import { convertToAccountSchema, convertToAccountSchemaList, TAccountSchema, TAccountSchemaList } from "@/schemas/AccountSchema";
 import { TAdminCreateRequestBody } from "@/schemas/AdminCreateRequestBody";
 import { TAdminDeleteRequestBody } from "@/schemas/AdminDeleteRequestBody";
 import { TAdminLoginRequestBody } from "@/schemas/AdminLoginRequestBody";
 import { TAdminLoginResponseBody } from "@/schemas/AdminLoginResponseBody";
 import { TAdminSchema } from "@/schemas/AdminSchema";
 import { TAdminUpdatePasswordRequestBody } from "@/schemas/AdminUpdatePasswordRequestBody";
+import { convertToCustomerServiceChatMessageSchemaList, TCustomerServiceChatMessageSchemaList } from "@/schemas/CustomerServiceChatMessageSchema";
+import { convertToCustomerServiceChatSchemaList, TCustomerServiceChatSchemaList } from "@/schemas/CustomerServiceChatSchema";
 import { TFaqCreateRequestBody } from "@/schemas/FaqCreateRequestBody";
 import { TFaqCreateResponseBody } from "@/schemas/FaqCreateResponseBody";
 import { convertToFaqSchema, convertToFaqSchemaList, TFaqSchema } from "@/schemas/FaqSchema";
@@ -17,19 +23,19 @@ import { TPackageCreateRequestBody } from "@/schemas/PackageCreateRequestBody";
 import { TPackageMetadataInterpretationCreateRequestBody } from "@/schemas/PackageMetadataInterpretationCreateRequestBody";
 import { convertToPackageMetadataInterpretationSchema, convertToPackageMetadataInterpretationSchemaList, TPackageMetadataInterpretationSchema, TPackageMetadataInterpretationSchemaList } from "@/schemas/PackageMetadataInterpretationSchema";
 import { convertToPackageSchema, convertToPackageSchemaList, TPackageSchema, TPackageSchemaList } from "@/schemas/PackageSchema";
-import { TUserCreateRequestBody } from "@/schemas/UserCreateRequestBody";
-import { convertToUserSchema, TUserSchema } from "@/schemas/UserSchema";
-import { TUserUpdateRequestBody } from "@/schemas/UserUpdateRequestBody";
 import { AdminAuthService } from "@/services/AdminAuthService";
 import createError from "@fastify/error";
+import Decimal from "decimal.js";
 
 const WrongSecretKeyError = createError('FST_ERR_AUTH', "Bạn đã nhập sai mã bí mật. Vui lòng kiểm tra và nhập lại.", 401);
+const NoSuchAccountError = createError('FST_ERR_NOT_FOUND', "Tài khoản không tồn tại.", 404);
 
 export class AdminController {
     constructor(
         private readonly adminRepository: AdminRepository,
-        private readonly userRepository: UserRepository,
+        private readonly accountRepository: AccountRepository,
         private readonly customerServiceChatRepository: CustomerServiceChatRepository,
+        private readonly customerServiceChatMessageRepository: CustomerServiceChatMessageRepository,
         private readonly packageMetadataInterpretationRepository: PackageMetadataInterpretationRepository,
         private readonly packageRepository: PackageRepository,
         private readonly adminAuthService: AdminAuthService,
@@ -73,40 +79,6 @@ export class AdminController {
             }),
         };
     }
-
-    async getUsers() {
-        return this.userRepository.findAll();
-    }
-
-    async createUser(payload: TUserCreateRequestBody): Promise<TUserSchema> {
-        return await this.userRepository.create({
-            full_name: payload.full_name,
-            national_id: payload.national_id,
-            birth_date: new Date(payload.birth_date),
-        }).then(convertToUserSchema);
-    }
-
-    async updateUser(id: number, payload: TUserUpdateRequestBody): Promise<TUserSchema> {
-        const user = await this.userRepository.update(
-            id, {
-            full_name: payload.full_name,
-            national_id: payload.national_id,
-            birth_date: new Date(payload.birth_date),
-        });
-
-        if (!user) {
-            throw new Error("User not found");
-        }
-        return convertToUserSchema(user);
-    }
-
-    // async getCustomerServiceChats() {
-    //     return this.customerServiceChatRepository.findAll();
-    // }
-
-    // async getPackageMetadataInterpretations() {
-    //     return this.packageMetadataInterpretationRepository.findAll();
-    // }
 
     async getFaqs(): Promise<TFaqSchema[]> {
         return this.faqRepository.findAll().then(convertToFaqSchemaList);
@@ -167,5 +139,48 @@ export class AdminController {
         return {
             success: await this.packageMetadataInterpretationRepository.delete(id),
         };
+    }
+
+    async getAccounts(): Promise<TAccountSchemaList> {
+        return this.accountRepository.findAll().then(convertToAccountSchemaList);
+    }
+
+    async createAccount(adminId: number, payload: TAccountCreateRequestBody): Promise<TAccountSchema> {
+        return this.accountRepository.create({
+            full_name: payload.full_name,
+            phone_number: payload.phone_number,
+            status: payload.status,
+            created_by_admin_id: adminId,
+            balance: new Decimal(0),
+        }).then(convertToAccountSchema);
+    }
+
+    async deleteAccount(id: number): Promise<{ success: boolean }> {
+        return {
+            success: await this.accountRepository.delete(id),
+        };
+    }
+
+    async updateAccountBalance(id: number, payload: TAccountBalanceUpdateRequestBody): Promise<TAccountSchema> {
+        const newAccount = await this.accountRepository.update(id, {
+            balance: new Decimal(payload.balance),
+        });
+        if (!newAccount) {
+            throw new NoSuchAccountError();
+        }
+        return convertToAccountSchema(newAccount);
+    }
+
+    async getCustomerServiceChats(): Promise<TCustomerServiceChatSchemaList> {
+        return await convertToCustomerServiceChatSchemaList(
+            await this.customerServiceChatRepository.findAll(),
+            (accountIds: number[]) => this.accountRepository.findAllByIds(accountIds),
+        );
+    }
+
+    async getCustomerServiceChatMessages(customerServiceChatId: number): Promise<TCustomerServiceChatMessageSchemaList> {
+        return await this.customerServiceChatMessageRepository
+            .findAllByChatId(customerServiceChatId)
+            .then(convertToCustomerServiceChatMessageSchemaList);
     }
 }

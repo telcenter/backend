@@ -25,4 +25,8 @@ export class AccountRepository implements BaseRepositoryInterface<number, Accoun
         await this.prisma.account.delete({ where: { id } });
         return true;
     }
+
+    async findAllByIds(ids: number[]): Promise<Account[]> {
+        return this.prisma.account.findMany({ where: { id: { in: ids } } });
+    }
 }

@@ -30,4 +30,8 @@ export class CustomerServiceChatMessageRepository
         await this.prisma.customerServiceChatMessage.delete({ where: { id } });
         return true;
     }
+
+    async findAllByChatId(chatId: number): Promise<CustomerServiceChatMessage[]> {
+        return this.prisma.customerServiceChatMessage.findMany({ where: { chat_id: chatId } });
+    }
 }

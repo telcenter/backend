@@ -6,8 +6,9 @@ export const registerControllers = fastifyPlugin(async (server: FastifyInstance,
     const controllers = {
         adminController: new AdminController(
             server.repositories.adminRepository,
-            server.repositories.userRepository,
+            server.repositories.accountRepository,
             server.repositories.customerServiceChatRepository,
+            server.repositories.customerServiceChatMessageRepository,
             server.repositories.packageMetadataInterpretationRepository,
             server.repositories.packageRepository,
             server.services.adminAuthService,
