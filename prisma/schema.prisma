@@ -85,7 +85,7 @@ model Package {
 model Faq {
   id                  Int      @id @default(autoincrement())
   question            String
-  answer              String @db.LongText
+  answer              String   @db.LongText
   created_by_admin_id Int
   created_at          DateTime @default(now())
 
@@ -98,7 +98,7 @@ model PackageMetadataInterpretation {
   id                   Int      @id @default(autoincrement())
   field_name           String
   field_local_name     String
-  field_interpretation String
+  field_interpretation String   @db.LongText
   created_by_admin_id  Int
   created_at           DateTime @default(now())
 

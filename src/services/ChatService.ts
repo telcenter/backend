@@ -56,7 +56,9 @@ export class ChatService {
                 if (!listening) {
                     return;
                 }
-                reject(new Error(`TER service connection error: ${error}`));
+                // reject(new Error(`TER service connection error: ${error}`));
+                resolve("tiêu cực, vì phải chờ lâu");
+                listening = false;
             });
         });
 
@@ -65,7 +67,9 @@ export class ChatService {
             ser_emotion: customerSEREmotion,
         });
 
-        return await fusedEmotionPromise;
+        const e = await fusedEmotionPromise;
+        console.log("Promise resolved:", e);
+        return e;
     }
 
     private async runRAG({
@@ -148,6 +152,7 @@ export class ChatService {
         });
         onFusedEmotionReady(fusedEmotion);
 
+        console.info(`Running RAG with fused emotion: ${fusedEmotion}`);
         this.runRAG({
             socketToRAG: socketToTERRAG,
             chatId,
