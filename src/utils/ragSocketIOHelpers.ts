@@ -16,7 +16,7 @@ export class RAGSocketIOHelpers {
         socketToRAG: SocketIOClientInterface,
         onNewReplyMessageChunk: (data: RAGReplyChunk) => any,
     }) => {
-        socketToRAG.on("message", _unknown_data => {
+        socketToRAG.on("message-response", _unknown_data => {
             let data: RAGReplyChunk;
             try {
                 data = Value.Decode(RAGReplyChunkSchema, _unknown_data);

@@ -38,12 +38,24 @@ export class ChatService {
             return "tích cực";
         }
 
+        let listening = true;
         const fusedEmotionPromise = new Promise<string>((resolve, reject) => {
-            socketToTERRAG.on("ter", (emotion: any) => {
+            if (!listening) {
+                return;
+            }
+
+            socketToTERRAG.on("ter-response", (emotion: any) => {
+                if (!listening) {
+                    return;
+                }
                 console.info("TER response:", emotion);
                 resolve(emotion);
+                listening = false;
             });
             socketToTERRAG.on("connect_error", (error: any) => {
+                if (!listening) {
+                    return;
+                }
                 reject(new Error(`TER service connection error: ${error}`));
             });
         });
@@ -95,13 +107,12 @@ export class ChatService {
 
     private async sendCustomerMessageToTERRAG(
         chatId: number,
-        chatType: ChatType,
         payload: TCustomerChatMessageCreateRequestBody,
         onFusedEmotionReady: (fusedEmotion: string) => any,
         onNewReplyMessageChunk: (chunk: RAGReplyChunk) => any,
     ) {
         const chat = await this.customerServiceChatRepository.findById(chatId);
-        if (!chat || chat.type !== chatType) {
+        if (!chat) {
             throw new ChatNotFoundError();
         }
         if (chat.type === ChatTypes.CALL && !payload.ser_emotion) {
@@ -200,7 +211,6 @@ export class ChatService {
         let fusedEmotion = "";
         this.sendCustomerMessageToTERRAG(
             payload.chat_id,
-            ChatTypes.TEXT,
             payload,
             computedFusedEmotion => {
                 fusedEmotion = computedFusedEmotion;
