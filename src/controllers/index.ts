@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { AdminController } from "./AdminController";
 import fastifyPlugin from "fastify-plugin";
+import { ChatController } from "./ChatController";
 
 export const registerControllers = fastifyPlugin(async (server: FastifyInstance, options: FastifyPluginOptions) => {
     const controllers = {
@@ -13,6 +14,14 @@ export const registerControllers = fastifyPlugin(async (server: FastifyInstance,
             server.repositories.packageRepository,
             server.services.adminAuthService,
             server.repositories.faqRepository,
+            server.services.notifyRAGServerService,
+        ),
+
+        chatController: new ChatController(
+            server.repositories.customerServiceChatRepository,
+            server.repositories.customerServiceChatMessageRepository,
+            server.repositories.accountRepository,
+            server.services.chatService,
         ),
     };
 

@@ -24,6 +24,7 @@ import { TPackageMetadataInterpretationCreateRequestBody } from "@/schemas/Packa
 import { convertToPackageMetadataInterpretationSchema, convertToPackageMetadataInterpretationSchemaList, TPackageMetadataInterpretationSchema, TPackageMetadataInterpretationSchemaList } from "@/schemas/PackageMetadataInterpretationSchema";
 import { convertToPackageSchema, convertToPackageSchemaList, TPackageSchema, TPackageSchemaList } from "@/schemas/PackageSchema";
 import { AdminAuthService } from "@/services/AdminAuthService";
+import { NotifyRAGServerService } from "@/services/NotifyRAGServerService";
 import createError from "@fastify/error";
 import Decimal from "decimal.js";
 
@@ -40,6 +41,7 @@ export class AdminController {
         private readonly packageRepository: PackageRepository,
         private readonly adminAuthService: AdminAuthService,
         private readonly faqRepository: FaqRepository,
+        private readonly notifyRAGServerService: NotifyRAGServerService,
     ) { }
 
     async login(payload: TAdminLoginRequestBody): Promise<TAdminLoginResponseBody> {
@@ -89,12 +91,18 @@ export class AdminController {
             question: payload.question,
             answer: payload.answer,
             created_by_admin_id: adminId,
-        }).then(convertToFaqSchema);
+        }).then(convertToFaqSchema).then(x => {
+            this.notifyRAGServerService.notifyRAGServer();
+            return x;
+        });
     }
 
     async deleteFaq(id: number): Promise<{ success: boolean }> {
         return {
-            success: await this.faqRepository.delete(id),
+            success: await this.faqRepository.delete(id).then(x => {
+                this.notifyRAGServerService.notifyRAGServer();
+                return x;
+            }),
         };
     }
 
@@ -107,12 +115,18 @@ export class AdminController {
             name: payload.name,
             metadata: payload.metadata,
             created_by_admin_id: adminId,
-        }).then(convertToPackageSchema);
+        }).then(convertToPackageSchema).then(x => {
+            this.notifyRAGServerService.notifyRAGServer();
+            return x;
+        });
     }
 
     async deletePackage(id: number): Promise<{ success: boolean }> {
         return {
-            success: await this.packageRepository.delete(id),
+            success: await this.packageRepository.delete(id).then(x => {
+                this.notifyRAGServerService.notifyRAGServer();
+                return x;
+            }),
         };
     }
 
@@ -130,14 +144,21 @@ export class AdminController {
             field_local_name: payload.field_local_name,
             field_interpretation: payload.field_interpretation,
             created_by_admin_id: adminId,
-        }).then(convertToPackageMetadataInterpretationSchema);
+        }).then(convertToPackageMetadataInterpretationSchema).then(x => {
+            this.notifyRAGServerService.notifyRAGServer();
+            return x;
+        });
     }
 
     async deletePackageMetadataInterpretation(
         id: number,
     ): Promise<{ success: boolean }> {
         return {
-            success: await this.packageMetadataInterpretationRepository.delete(id),
+            success: await this.packageMetadataInterpretationRepository.delete(id)
+            .then(x => {
+                this.notifyRAGServerService.notifyRAGServer();
+                return x;
+            }),
         };
     }
 

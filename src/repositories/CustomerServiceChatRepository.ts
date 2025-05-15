@@ -1,6 +1,10 @@
-import { CustomerServiceChat } from "@prisma/client";
+import { Account, CustomerServiceChat } from "@prisma/client";
 import { BaseRepositoryInterface, EntityCreatePayload, EntityUpdatePayload } from "./BaseRepositoryInterface";
 import { PrismaClientLike } from "./PrismaClientLike";
+
+export type CustomerServiceChatWithAccount = CustomerServiceChat & {
+    account: Account,
+};
 
 export class CustomerServiceChatRepository
     implements BaseRepositoryInterface<number, CustomerServiceChat>
@@ -26,5 +30,20 @@ export class CustomerServiceChatRepository
     async delete(id: number): Promise<boolean> {
         await this.prisma.customerServiceChat.delete({ where: { id } });
         return true;
+    }
+
+    async findByType(type: string): Promise<CustomerServiceChat[]> {
+        return this.prisma.customerServiceChat.findMany({ where: { type } });
+    }
+
+    async findByIdJoinedWithAccount(id: number): Promise<CustomerServiceChatWithAccount | null> {
+        return this.prisma.customerServiceChat.findUnique({
+            where: { id },
+            include: { account: true },
+        });
+    }
+
+    async findAllByAccountId(accountId: number): Promise<CustomerServiceChat[]> {
+        return this.prisma.customerServiceChat.findMany({ where: { account_id: accountId } });
     }
 }

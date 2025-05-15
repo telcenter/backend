@@ -29,4 +29,8 @@ export class AccountRepository implements BaseRepositoryInterface<number, Accoun
     async findAllByIds(ids: number[]): Promise<Account[]> {
         return this.prisma.account.findMany({ where: { id: { in: ids } } });
     }
+
+    async findByPhoneNumber(phoneNumber: string): Promise<Account | null> {
+        return this.prisma.account.findUnique({ where: { phone_number: phoneNumber } });
+    }
 }

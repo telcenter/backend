@@ -8,10 +8,16 @@ export const TRUST_PROXY: boolean|string|number = readEnv_TRUST_PROXY();
 
 export const SECRET_KEY: string = readNonEmptyStringEnv('SECRET_KEY');
 export const FRONTEND_SECRET: string = readNonEmptyStringEnv('FRONTEND_SECRET');
-export const CORS_ALLOW_ORIGIN: string = readNonEmptyStringEnv('CORS_ALLOW_ORIGIN');
+export const CORS_ALLOW_ORIGINS: string[] = readStringListEnv('CORS_ALLOW_ORIGIN', {
+    ignoreEmptySegments: true,
+});
 
 export const DATABASE_URL: string = readNonEmptyStringEnv('DATABASE_URL');
 export const SHADOW_DATABASE_URL: string = readNonEmptyStringEnv('SHADOW_DATABASE_URL');
+
+export const TERRAG_SOCKET_URL: string | null = readOptionalStringEnv('TERRAG_SOCKET_URL');
+
+export const REDIS_URL: string = readNonEmptyStringEnv('REDIS_URL');
 
 function readEnv_TRUST_PROXY() {
     const trustProxy = readNonEmptyStringEnv('TRUST_PROXY');
