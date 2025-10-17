@@ -20,6 +20,20 @@ cd $PROJECT_ROOT
 npm i
 ```
 
+Then, in project root, copy file `.env.example`
+into a new file called `.env`, and set appropriate
+values for those environment variables.
+
+Next, setup the databases as required by those
+variables.
+
+Finally, apply database schemas' migrations.
+
+```sh
+cd $PROJECT_ROOT
+npx prisma migrate deploy
+```
+
 ## How to Run
 
 ### Development
